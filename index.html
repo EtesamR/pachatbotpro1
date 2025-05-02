@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>سامانه خرید بلیط هواپیما و قطار</title>
+<link rel="stylesheet" href="proj.css" />
+</head>
+<body>
+
+    <header>
+        <h1>سیستم خرید بلیط سریع و آسان</h1>
+        <div class="clouds">
+            <img src="cloudy-svgrepo-com.svg" alt="Cloud" class="cloud" style="top:10%; left:5%; width:80px; position:absolute;"/>
+            <img src="cloudy-svgrepo-com.svg" alt="Cloud" class="cloud" style="top:13%; left:50%; width:100px; position:absolute;"/>
+            <img src="cloudy-svgrepo-com.svg" alt="Cloud" class="cloud" style="top:10%; left:80%; width:60px; position:absolute;"/>
+          </div>
+        <div class="animated-svg-container">
+          <img src="airplane-svgrepo-com.svg" alt="Airplane" class="airplane" />
+        </div>
+        
+        <nav>
+          <ul style="display:flex; list-style:none; justify-content:center; gap:20px; padding:0;">
+            <li><a href="#search">جستجو</a></li>
+            <li><a href="#steps">مراحل خرید</a></li>
+            <li><a href="#filter">فیلترها</a></li>
+            <li><a href="#about">درباره ما</a></li>
+            <li><a href="#faq">سوالات متداول</a></li>
+            <li><a href="#benefits-guides">مزایا و راهنما</a></li>
+          </ul>
+        </nav>
+      </header>
+      
+      <style>
+      @keyframes moveAcross {
+        0% {
+          transform: translateX(-880px) scaleX(1); /* شروع به سمت چپ، جهت رو به راست */
+        }
+        50% {
+          transform: translateX(70vw) scaleX(1); /* حرکت به سمت راست، جهت رو به راست */
+        }
+        50.0001% {
+          transform: translateX(70vw) scaleX(-1); /* برعکس، جهت رو به چپ */
+        }
+        100% {
+          transform: translateX(-1200px) scaleX(-1); /* برگرد به سمت چپ، جهت رو به چپ */
+        }
+      }
+      
+      .animated-svg-container {
+        display: inline-block;
+        animation: moveAcross 20s linear infinite;
+        /* اندازه هواپیما */
+        width: 150px;
+        height: auto;
+      }
+      
+      /* برای انتقال جهت در حین انیمیشن، باید روی تصویر اعمال کنیم */
+      .airplane {
+        width: 100%; /* اندازه تصویر درون کانتینر */
+        height: auto;
+      }
+      </style>
+
+<!-- بخش درباره -->
+<section id="about">
+    <div class="container">
+        <h2>درباره سامانه ما</h2>
+        <p>با استفاده از این سامانه می‌توانید بلیط‌های داخلی و خارجی را به راحتی و در کم‌ترین زمان رزرو کنید. امکانات متنوع و پشتیبانی ۲۴ ساعته در کنار شما هستیم.</p>
+    </div>
+</section>
+
+<!-- بخش جستجو -->
+<section id="search">
+    <h2>انتخاب نوع سفر</h2>
+    <div class="tabs">
+        <div class="tab active" data-type="plane" onclick="setTravelType('plane')">
+            <img src="https://img.icons8.com/ios/24/000000/airplane-take-off.png" /> پرواز داخلی/خارجی
+        </div>
+        <div class="tab" data-type="train" onclick="setTravelType('train')">
+            <img src="https://img.icons8.com/ios/24/000000/train.png" /> قطار
+        </div>
+    </div>
+    <form id="search-form" onsubmit="return false;">
+        <div class="form-group">
+            <label for="from">مبدا:</label>
+            <input type="text" id="from" placeholder="مثلاً تهران" required />
+        </div>
+        <div class="form-group">
+            <label for="to">مقصد:</label>
+            <input type="text" id="to" placeholder="مثلاً مشهد" required />
+        </div>
+        <div class="form-group">
+            <label for="date">تاریخ:</label>
+            <input type="date" id="date" required />
+        </div>
+        <div class="form-group" id="ticket-type-group">
+            <label for="ticket-type">نوع بلیط:</label>
+            <select id="ticket-type" onchange="toggleExternalOption()">
+                <option value="domestic">داخل کشور</option>
+                <option value="international">خارجی</option>
+            </select>
+        </div>
+        <div class="form-group" id="extra-services">
+            <label>خدمات اضافی:</label>
+            <label><input type="checkbox" /> همراه با بیمه</label><br/>
+            <label><input type="checkbox" /> انتخاب صندلی خاص</label>
+        </div>
+    </form>
+    <button onclick="searchFlights()">جستجو</button>
+</section>
+
+<!-- بخش نتایج -->
+<section id="results" style="display:none;">
+    <h2>نتایج جستجو</h2>
+    <div class="results-container" id="results-container"></div>
+</section>
+
+<!-- مراحل خرید -->
+<section id="steps">
+    <h2>مراحل خرید بلیط</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>انتخاب مبدا و مقصد</h3>
+                <p>مبدا و مقصد سفر خود را وارد کنید و نوع سفر (هوایی یا قطاری) را مشخص نمایید.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>انتخاب تاریخ و خدمات</h3>
+                <p>تاریخ سفر و خدمات اضافی مورد نیاز را انتخاب کنید.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>مشاهده نتایج و انتخاب بلیط</h3>
+                <p>نتایج را مشاهده و بلیط مورد نظر خود را انتخاب کنید.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>پرداخت و تایید</h3>
+                <p>اطلاعات پرداخت را وارد و فرآیند خرید را نهایی کنید.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- فیلترهای پیشرفته -->
+<section id="filter">
+    <h2>فیلترهای جستجو</h2>
+    <div class="filter-options">
+        <div class="filter-option">
+            <h3>ساعت حرکت</h3>
+            <div class="time-range">
+                <div class="time-inputs">
+                    <div>
+                        <label for="filter-time-start">از:</label>
+                        <input type="time" id="filter-time-start" />
+                    </div>
+                    <div>
+                        <label for="filter-time-end">تا:</label>
+                        <input type="time" id="filter-time-end" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-option">
+            <h3>تعداد توقف</h3>
+            <select id="stop-count">
+                <option value="0">بدون توقف</option>
+                <option value="1">یک توقف</option>
+                <option value="2">دو توقف</option>
+            </select>
+        </div>
+        <div class="filter-option">
+            <h3>نوع شرکت هواپیمایی/قطار</h3>
+            <input type="text" placeholder="مثلاً ایران ایر" id="airline-filter" />
+        </div>
+    </div>
+    <button onclick="applyFilters()">اعمال فیلترها</button>
+</section>
+<!-- بخش مزایا و راهنمای خرید بلیط -->
+<!-- بخش مزایای و راهنمای خرید (جدید) -->
+<section id="benefits-guides" class="info-section">
+    <h2 class="section-title">مزایای خرید بلیط از مِستربلیط و راهنمای خرید</h2>
+    <div class="info-cards">
+      <!-- مزایای قبلی ... -->
+      <div class="info-card">
+        <h3>مزایای خرید آنلاین</h3>
+        <ul>
+          <li>دسترسی ۲۴ ساعته و بدون نیاز به مراجعه حضوری</li>
+          <li>مقایسه قیمت‌ها و گزینه‌های مختلف در زمان کوتاه</li>
+          <li>امکان دریافت بلیط به صورت الکترونیکی و پرینت در صورت نیاز</li>
+          <li>اطلاع‌رسانی سریع درباره تخفیف‌ها و پیشنهادهای ویژه</li>
+        </ul>
+      </div>
+      <!-- راهنمای خرید -->
+      <div class="info-card">
+        <h3>راهنمای خرید بلیط هواپیما</h3>
+        <ol>
+          <li>انتخاب مقصد و تاریخ سفر</li>
+          <li>انتخاب نوع بلیط و خدمات اضافی (در صورت نیاز)</li>
+          <li>مراجعه به صفحه نتایج و مقایسه گزینه‌ها</li>
+          <li>انتخاب بهترین گزینه و وارد کردن اطلاعات مسافر</li>
+          <li>پرداخت و دریافت بلیط الکترونیکی</li>
+        </ol>
+      </div>
+      <!-- عوامل مؤثر بر قیمت -->
+      <div class="info-card">
+        <h3>عوامل مؤثر بر قیمت بلیط هواپیما</h3>
+        <ul>
+          <li>زمان سفر: هر چه زودتر رزرو کنید، قیمت مناسب‌تری خواهید داشت</li>
+          <li>موسم و تعطیلات: در ایام پیک، قیمت‌ها بالاتر است</li>
+          <li>کلاس سفر: اقتصادی، بیزینس و فرست کلاس قیمت‌های متفاوت دارند</li>
+          <li>شرکت هواپیمایی و نوع بلیط: چارتر یا سیستمی بودن، نقش مهمی دارد</li>
+          <li>خدمات اضافی: انتخاب صندلی، بیمه و دیگر خدمات هزینه را تغییر می‌دهد</li>
+        </ul>
+      </div>
+      <!-- موارد جدید -->
+      <div class="info-card">
+        <h3>چگونه بلیط هواپیما ارزان‌تر بخریم؟</h3>
+        <ul>
+          <li>رزرو زودتر از تاریخ سفر برای بهره‌مندی از تخفیف‌ها</li>
+          <li>مقایسه قیمت‌های خطوط هواپیمایی مختلف</li>
+          <li>استفاده از پیشنهادهای ویژه و تخفیف‌های فصلی</li>
+          <li>انتخاب زمان سفر در روزهای کم‌تقاضا</li>
+          <li>انتخاب سفر در ساعات کم‌تردد (مثل صبح زود یا شب)</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3>تفاوت بلیط سیستمی و چارتری و راهنمای خرید</h3>
+        <ul>
+          <li><strong>بلیط سیستمی:</strong> قیمت ثابت و قابل استرداد، مناسب سفرهای برنامه‌ریزی‌شده</li>
+          <li><strong>بلیط چارتری:</strong> قیمت متغیر، معمولاً ارزان‌تر، ولی ممکن است قابل استرداد نباشد</li>
+          <li>در صورت نیاز به تغییر یا استرداد، بلیط سیستمی گزینه بهتری است</li>
+          <li>برای سفرهای اضطراری یا در زمان‌های پرتقاضا، بلیط چارتری معمولاً ارزان‌تر است</li>
+          <li>در هنگام خرید، نوع بلیط را بر اساس نیازهای خود انتخاب کنید</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  </section>
+    <section id="faq" class="faq-section">
+  <h2 class="section-title">سوالات متداول</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-question" aria-expanded="false" aria-controls="faq1" id="question1">
+        <span>چگونه بلیط هواپیما یا قطار رزرو کنم؟</span>
+        <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="faq-answer" id="faq1" role="region" aria-labelledby="question1" hidden>
+        <p>برای رزرو بلیط، ابتدا نوع سفر (هوایی یا قطاری) را انتخاب کنید، سپس مبدا، مقصد و تاریخ سفر را وارد نمایید. پس از جستجو، لیست نتایج نمایش داده می‌شود که می‌توانید بر اساس نیاز خود، بلیط مناسب را انتخاب کنید و فرآیند پرداخت را کامل کنید.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" aria-expanded="false" aria-controls="faq2" id="question2">
+        <span>آیا می‌توانم بلیط‌های خارجی و داخلی را در یک حساب کاربری رزرو کنم؟</span>
+        <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="faq-answer" id="faq2" role="region" aria-labelledby="question2" hidden>
+        <p>بله، سیستم ما امکان رزرو هر دو نوع بلیط داخلی و خارجی را در یک حساب کاربری فراهم کرده است. فقط کافی است مقصد و تاریخ سفر خود را مشخص کنید و نتایج مربوطه را مشاهده نمایید.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+        <span>چگونه می‌توانم بلیطم را لغو یا تغییر دهم؟</span>
+        <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+        <p>برای لغو یا تغییر بلیط، وارد حساب کاربری خود شوید و بخش مدیریت بلیط‌ها را باز کنید. پس از انتخاب بلیط مورد نظر، گزینه‌های لغو یا تغییر در دسترس شما قرار می‌گیرد.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>چگونه می‌توانم بلیطم را لغو یا تغییر دهم؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>برای لغو یا تغییر بلیط، وارد حساب کاربری خود شوید و بخش مدیریت بلیط‌ها را باز کنید. پس از انتخاب بلیط مورد نظر، گزینه‌های لغو یا تغییر در دسترس شما قرار می‌گیرد.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>شرایط و نرخ بلیط هواپیما برای کودکان و نوزادان چیست؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>نرخ بلیط ایرلاین‌های مختلف برای کودکان و نوزادان معمولاً کمتر از نرخ بزرگسالان است. برای نوزادان (زیر ۲ سال) معمولاً بلیط با نرخ تخفیفی عرضه می‌شود که شامل صندلی نیست؛ اما در صورت درخواست می‌توان صندلی جداگانه برای آن‌ها رزرو کرد.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>بلیط هواپیما را چند روز قبل از پرواز تهیه کنیم؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>در ایام پیک سفر مانند تعطیلات نوروز یا اواخر شهریورماه، ترجیحا از یک ماه قبل به فکر رزرو بلیط باشید. اما در ایام غیرپیک حتی چند روز پیش از سفر نیز می‌توانید بلیط موردنظرتان را پیدا کنید.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>میزان بار مجاز برای هر پرواز چقدر است؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>میزان بار مجاز به نوع بلیط و خطوط هواپیمایی بستگی دارد. به‌طور معمول، برای پروازهای داخلی، بار مجاز حدود ۲۰ کیلوگرم برای بزرگسالان و ۱۰ کیلوگرم برای کودکان است. برای پروازهای بین‌المللی، این میزان معمولاً بیشتر است.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>میزان بار مجاز برای هر پرواز چقدر است؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>میزان بار مجاز به نوع بلیط و خطوط هواپیمایی بستگی دارد. به‌طور معمول، برای پروازهای داخلی، بار مجاز حدود ۲۰ کیلوگرم برای بزرگسالان و ۱۰ کیلوگرم برای کودکان است. برای پروازهای بین‌المللی، این میزان معمولاً بیشتر است.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>هزینه بلیط هواپیما برای کودکان زیر 12 سال چطور محاسبه می‌شود؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>در پروازهای سیستمی مبلغ بلیط برای کودکان زیر 12 سال بسته به نوع پرواز تا 50 درصد می‌تواند ارزان‌تر باشد. برای نوزادان (زیر 2 سال) تنها هزینه بیمه محاسبه می‌شود.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>آیا رزرو آنلاین بلیط هواپیما از خرید حضوری، هزینه بیشتری دارد؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>خیر، حتی می‌توان گفت خرید آنلاین هزینه کمتری را دارید، زیرا در سامانه‌های آنلاین می‌توانید همزمان پروازهای متفاوت به مقصد موردنظرتان را مشاهده کنید و از میان آنها بلیطی که بهترین قیمت را دارد انتخاب کنید. حتی پروازهای لحظه آخری مه هزینه کمی دارند نیز در سامانه‌های آنلاین ارائه می‌شوند.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>شرایط کنسلی و استرداد بلیط هواپیما در مِستربلیط چیست؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>شرایط کنسلی و استرداد بلیط هواپیما بسته به نوع بلیط و سیاست‌های خطوط هواپیمایی متفاوت است. معمولاً بلیط‌های سیستمی قابلیت استرداد دارند، درحالی‌که بلیط‌های چارتر ممکن است شرایط خاصی داشته‌ باشند. به‌همین‌دلیل، بهتر است پیش‌از خرید، شرایط را بررسی کنید.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>آیا امکان انتخاب صندلی مورد نظرمان، در هنگام خرید بلیط هواپیما وجود دارد؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>بله، معمولاً در حین خرید بلیط هواپیما، گزینه‌ای برای انتخاب صندلی وجود دارد. برخی خطوط هواپیمایی این امکان را به‌صورت رایگان و برخی دیگر با هزینه اضافی عرضه می‌کنند.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>درصورتی‌که نام مسافر را اشتباه وارد کردیم چه کنیم؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>درصورتی‌که نام مسافر را به اشتباه وارد کنید، باید با خدمات مشتریان مِستربلیط تماس بگیرید. با توجه به شرایط بلیط و سیاست‌های خطوط هواپیمایی، ممکن است بتوانید نام را اصلاح کنید.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>چند ساعت پیش‌از پرواز باید در فرودگاه باشم؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>معمولاً توصیه می‌شود که حداقل ۲ تا ۳ ساعت پیش‌از پروازهای بین‌المللی و ۱ تا ۲ ساعت پیش‌از پروازهای داخلی در فرودگاه حاضر شوید.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>آیا بلیط هواپیما شامل بیمه مسافر هم میشود؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>بلیط ایرلاین‌های مختلف معمولاً شامل بیمه مسافرتی نمی‌شود، مگر اینکه به‌صورت جداگانه خریداری شود. برخی خطوط هواپیمایی ممکن است گزینه‌ای برای افزودن بیمه مسافر در حین خرید بلیط فراهم کنند.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>اگر از پرواز جا ماندم، چه کار کنم؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>در صورت جاماندن از پرواز، باید با خدمات مشتریان مِستربلیط یا خط هواپیمایی تماس بگیرید. بسته به شرایط بلیط، ممکن است بتوانید پرواز دیگری را رزرو کنید.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>مدارک موردنیاز برای رزرو بلیط هواپیما در مِستربلیط چیست؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>برای رزرو بلیط ایرلاین‌های مختلف در مِستربلیط به نمایش مدارکی مانند کارت ملی یا پاسپورت و اطلاعات تماس نیاز دارید.</p>
+        </div>
+      </div>
+    <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>آیا بلیط هواپیما خریداری‌شده از مِستربلیط را باید پرینت گرفت؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>معمولاً نیازی به پرینت بلیط پرواز نیست؛ اما بهتر است اطلاعات بلیط را بر روی تلفن همراه خود ذخیره کنید یا پرینت آن را با خودتان داشته باشید تا در صورت نیاز، بتوانید آن را نمایش دهید.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>جریمه کنسلی بلیط هواپیما چقدر است؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>برای مشاهده میزان جریمه کنسلی بلیط خود پس از آنکه بلیط را تهیه کردید، به قسمت قوانین و مقررات در پایین بلیط خود مراجعه کنید و میزان جریمه کنسلی رو مشاهده کنید چنانچه در بلیط عنوان شده بود که تغییر و کنسلی این پرواز مطابق با شرایط و مقررات تامین کننده میباشد به این معنا می باشد که برای مشخص شدن میزان جریمه کنسلی پرواز شما ، ما می بایست از تامین کننده پرواز جریمه کنسلی رو استعلام کنیم و پس از آن به شما اطلاع رسانی کنیم. شما می توانید از طریق گزینه کنسل کردن درخواست کنسلی خود را ثبت نمایید و پس از استعلام جریمه توسط ما کارشناسان پشتیبانی در کمترین زمان نتیجه رو به شما اطلاع رسانی خواهند کرد.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>تعیین قیمت بلیط هواپیما به چه صورت است؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>کلی با توجه به مسافت مبدا و مقصد و همچنین کلاس پروازی، قیمت بلیط تعیین می‌شود. اما به‌طور کلی ایرلاین‌ها و چارتر کننده‌ها مبلغ بلیط را تعیین می‌کنند.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+          <span>چگونه وضعیت رزرو بلیط را پیگیری کنم؟</span>
+          <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+          <p>برای پیگیری وضعیت بلیط چنانچه با کاربری خودتان خرید کرده باشید باید از طریق گزینه پیگیری خرید و کنسلی آخرین وضعیت خریدهای خود را مشاهده نمایید.همچنین چنانچه بدون استفاده از اکانت کاربری خرید کرده‌اید در پایان خرید یه کد 8 رقمی تحت عنوان کد صورتحساب به شما نمایش داده شده است. به‌علاوه این کد در پیامک تایید خرید نیز وجود دارد. با این کد شما می‌توانید از طریق گزینه پیگیری خرید و کنسلی با وارد کردن شماره صورتحساب و شماره موبایل وضعیت صورتحساب خود را مشاهده نمایید.</p>
+        </div>
+      </div>
+</section>
+
+<!-- سایر سوالات به همین صورت -->
+<!-- 
+
+<div class="faq-item">
+    <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="question3">
+      <span></span>
+      <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#004080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    <div class="faq-answer" id="faq3" role="region" aria-labelledby="question3" hidden>
+      <p></p>
+    </div>
+  </div>
+
+-->
+<!-- تماس با ما -->
+<section id="contact">
+    <h2>تماس با ما</h2>
+    <p>شماره تماس: ۰۲۱-۱۲۳۴۵۶۷۸</p>
+    <p>ایمیل: support@ticket.com</p>
+</section>
+
+<!-- پاورقی -->
+<footer>
+    <p>© 2024 سیستم رزرو بلیط. تمامی حقوق محفوظ است.</p>
+</footer>
+
+<!-- اسکریپت‌ها -->
+<script>
+// تابع تغییر نوع سفر
+function setTravelType(type) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    // بر اساس نوع سفر، قسمت‌های مربوطه را نشان دهید یا مخفی کنید
+    document.getElementById('ticket-type-group').style.display = 'block'; // نمونه
+}
+// تغییر نوع بلیط داخلی خارجی
+function toggleExternalOption() {
+    const select = document.getElementById('ticket-type');
+    // می‌تونید بر اساس مقدار، تغییراتی انجام بدهید
+}
+// جستجو نمونه
+function searchFlights() {
+    // نمونه: نمایش نتایج فرضی
+    const container = document.getElementById('results-container');
+    container.innerHTML = '';
+    for (let i=1; i<=3; i++) {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `
+            <h4>پرواز ${i} از تهران به مشهد</h4>
+            <div class="result-details">
+                <p>تاریخ: 1402/07/20</p>
+                <p>ساعت: 10:00</p>
+                <p>مدت سفر: 2 ساعت</p>
+                <button onclick="selectTicket('تهران','مشهد','1402/07/20','اقتصادی')">انتخاب بلیط</button>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+    document.getElementById('results').style.display = 'block';
+}
+// انتخاب بلیط
+function selectTicket(from, to, date, classType) {
+    alert(`بلیط ${classType} از ${from} به ${to} در تاریخ ${date} انتخاب شد.`);
+}
+// اعمال فیلترها
+function applyFilters() {
+    const startTime = document.getElementById('filter-time-start').value;
+    const endTime = document.getElementById('filter-time-end').value;
+    alert(`فیلتر ساعت:\nاز: ${startTime || 'همه'}\nتا: ${endTime || 'همه'}`);
+}
+// سوالات متداول
+function toggleFaq(element) {
+    const answer = element.nextElementSibling;
+    answer.classList.toggle('show');
+}
+
+
+
+(function(d, t) {
+      var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      v.onload = function() {
+        window.voiceflow.chat.load({
+          verify: { projectID: '6810b9c740ca4b6e13f45606' },
+          url: 'https://general-runtime.voiceflow.com',
+          versionID: 'production',
+          voice: {
+            url: "https://runtime-api.voiceflow.com"
+          }
+        });
+      }
+      v.src = "https://cdn.voiceflow.com/widget-next/bundle.mjs"; v.type = "text/javascript"; s.parentNode.insertBefore(v, s);
+})(document, 'script');
+
+
+
+
+</script>
+</body>
+</html>
